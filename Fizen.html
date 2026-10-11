@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fizen Private Business Manager</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Typing animation for Welcome banner */
+        .typing-effect {
+            overflow: hidden;
+            border-right: .15em solid #818cf8;
+            white-space: nowrap;
+            letter-spacing: .05em;
+            animation: typing 3s steps(40, end), blink-caret .75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #818cf8; }
+        }
+
+        /* Glassmorphism styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 font-sans text-gray-800 min-h-screen">
+
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900">
+        <div class="glass-card p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50">
+            <div class="text-center mb-6">
+                <div class="inline-flex p-4 rounded-full bg-indigo-600/20 text-indigo-400 mb-3">
+                    <i class="fa-solid fa-cube text-4xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white tracking-wide">Fizen Manager</h2>
+                <p class="text-slate-400 text-sm mt-1">Private Business Access System</p>
+            </div>
+            
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-slate-300 text-xs font-semibold uppercase tracking-wider mb-1">User ID</label>
+                    <input type="text" id="login-id" placeholder="Enter ID (Fizen)" required 
+                        class="w-full bg-slate-800/80 border border-slate-700 text-white rounded-lg p-3 focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div>
+                    <label class="block text-slate-300 text-xs font-semibold uppercase tracking-wider mb-1">Password</label>
+                    <input type="password" id="login-pass" placeholder="Enter Password" required 
+                        class="w-full bg-slate-800/80 border border-slate-700 text-white rounded-lg p-3 focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <div id="login-error" class="text-rose-500 text-sm hidden text-center font-medium">
+                    <i class="fa-solid fa-circle-exclamation"></i> Invalid User ID or Password!
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-lg shadow-lg shadow-indigo-600/30 transition duration-200">
+                    Sign In
+                </button>
+            </form>
+            <p class="text-xs text-slate-500 text-center mt-6">Protected & Managed by Fizen Internal Setup</p>
+        </div>
+    </div>
+
+    <!-- 2. MAIN APPLICATION WORKSPACE -->
+    <div id="app-workspace" class="flex h-screen overflow-hidden hidden bg-slate-100">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between hidden md:flex shadow-2xl z-20 border-r border-slate-800">
+            <div>
+                <div class="p-5 text-2xl font-black tracking-wider border-b border-slate-800 flex items-center gap-3">
+                    <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                        <i class="fa-solid fa-cube"></i>
+                    </div>
+                    <span>Fizen</span>
+                </div>
+                <nav class="p-4 space-y-1.5">
+                    <button onclick="switchTab('dashboard')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800/80 transition flex items-center gap-3 tab-btn active" data-tab="dashboard">
+                        <i class="fa-solid fa-chart-pie w-5 text-indigo-400"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('products')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800/80 transition flex items-center gap-3 tab-btn" data-tab="products">
+                        <i class="fa-solid fa-box-open w-5 text-indigo-400"></i> Products
+                    </button>
+                    <button onclick="switchTab('orders')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800/80 transition flex items-center gap-3 tab-btn" data-tab="orders">
+                        <i class="fa-solid fa-shopping-cart w-5 text-indigo-400"></i> Orders & Customers
+                    </button>
+                    <button onclick="switchTab('content')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800/80 transition flex items-center gap-3 tab-btn" data-tab="content">
+                        <i class="fa-solid fa-pen-nib w-5 text-indigo-400"></i> Content & Ads
+                    </button>
+                    <button onclick="switchTab('finance')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800/80 transition flex items-center gap-3 tab-btn" data-tab="finance">
+                        <i class="fa-solid fa-wallet w-5 text-indigo-400"></i> Income & Expense
+                    </button>
+                    <button onclick="switchTab('tasks')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800/80 transition flex items-center gap-3 tab-btn" data-tab="tasks">
+                        <i class="fa-solid fa-list-check w-5 text-indigo-400"></i> Team & Tasks
+                    </button>
+                    <button onclick="switchTab('media')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800/80 transition flex items-center gap-3 tab-btn" data-tab="media">
+                        <i class="fa-solid fa-folder-open w-5 text-indigo-400"></i> Media & Files
+                    </button>
+                    <button onclick="switchTab('backup')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800/80 transition flex items-center gap-3 tab-btn" data-tab="backup">
+                        <i class="fa-solid fa-database w-5 text-indigo-400"></i> Backup & Restore
+                    </button>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+                <span>Fizen v2.0 • Local</span>
+                <button onclick="handleLogout()" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50">
+            <!-- Top Header -->
+            <header class="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200/80 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+                <h1 id="page-title" class="text-xl font-bold text-slate-800">Dashboard</h1>
+                <div class="flex items-center gap-4">
+                    <span class="text-xs bg-emerald-100 text-emerald-800 font-medium px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Authorized Access
+                    </span>
+                    <button onclick="triggerQuickBackup()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> Quick Backup
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dynamic Views -->
+            <div class="p-6 space-y-6">
+
+                <!-- 1. DASHBOARD TAB -->
+                <div id="dashboard" class="tab-content active space-y-6">
+                    <!-- HERO BANNER WITH ANIMATED TYPING WELCOME -->
+                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 p-8 text-white shadow-xl border border-indigo-500/20">
+                        <div class="relative z-10 max-w-2xl">
+                            <div class="inline-block mb-2">
+                                <h2 class="typing-effect text-2xl md:text-3xl font-extrabold text-indigo-300 pr-2">
+                                    Welcome to Fizen Business Manager!
+                                </h2>
+                            </div>
+                            <p class="text-slate-300 text-sm md:text-base mt-2 leading-relaxed">
+                                আপনার ই-কমার্স ব্যবসা পরিচালনা, কন্টেন্ট ট্র্যাকিং, সোশ্যাল অ্যাডস ম্যানেজমেন্ট ও প্রফিট ক্যালকুলেশন এখন আরও সহজ ও নিরাপদ।
+                            </p>
+                        </div>
+                        <div class="absolute right-6 -bottom-6 text-indigo-500/10 text-9xl pointer-events-none hidden lg:block">
+                            <i class="fa-solid fa-rocket"></i>
+                        </div>
+                    </div>
+
+                    <!-- STATS CARDS -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                            <div class="flex justify-between items-center text-slate-500">
+                                <span class="text-xs uppercase font-bold tracking-wider">Total Orders</span>
+                                <i class="fa-solid fa-bag-shopping text-indigo-500"></i>
+                            </div>
+                            <h3 id="stat-orders" class="text-3xl font-black mt-2 text-slate-800">0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                            <div class="flex justify-between items-center text-slate-500">
+                                <span class="text-xs uppercase font-bold tracking-wider">Total Revenue</span>
+                                <i class="fa-solid fa-arrow-trend-up text-emerald-500"></i>
+                            </div>
+                            <h3 id="stat-income" class="text-3xl font-black mt-2 text-emerald-600">৳0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                            <div class="flex justify-between items-center text-slate-500">
+                                <span class="text-xs uppercase font-bold tracking-wider">Total Expenses</span>
+                                <i class="fa-solid fa-arrow-trend-down text-rose-500"></i>
+                            </div>
+                            <h3 id="stat-expense" class="text-3xl font-black mt-2 text-rose-600">৳0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                            <div class="flex justify-between items-center text-slate-500">
+                                <span class="text-xs uppercase font-bold tracking-wider">Net Profit</span>
+                                <i class="fa-solid fa-coins text-amber-500"></i>
+                            </div>
+                            <h3 id="stat-profit" class="text-3xl font-black mt-2 text-indigo-600">৳0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. PRODUCTS TAB -->
+                <div id="products" class="tab-content space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-plus-circle text-indigo-600 mr-2"></i>Add Product</h3>
+                        <form id="product-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <input type="text" id="prod-name" placeholder="Product Name" required class="border border-slate-300 p-2.5 rounded-lg focus:outline-indigo-500">
+                            <input type="number" id="prod-price" placeholder="Price (৳)" required class="border border-slate-300 p-2.5 rounded-lg focus:outline-indigo-500">
+                            <input type="number" id="prod-stock" placeholder="Stock Quantity" required class="border border-slate-300 p-2.5 rounded-lg focus:outline-indigo-500">
+                            <button type="submit" class="bg-indigo-600 text-white font-medium py-2.5 rounded-lg hover:bg-indigo-700 transition">Save Product</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-boxes-stacked text-indigo-600 mr-2"></i>Inventory List</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b bg-slate-50 text-slate-600 text-xs uppercase font-semibold">
+                                        <th class="p-3">Name</th>
+                                        <th class="p-3">Price</th>
+                                        <th class="p-3">Stock</th>
+                                        <th class="p-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="product-table-body" class="divide-y text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ORDERS TAB -->
+                <div id="orders" class="tab-content space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-cart-plus text-indigo-600 mr-2"></i>New Order Entry</h3>
+                        <form id="order-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <input type="text" id="cust-name" placeholder="Customer Name" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <input type="text" id="cust-phone" placeholder="Phone Number" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <input type="text" id="order-details" placeholder="Product Details" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <input type="number" id="order-amount" placeholder="Total Amount (৳)" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <button type="submit" class="md:col-span-4 bg-indigo-600 text-white font-medium py-2.5 rounded-lg hover:bg-indigo-700 transition">Create Order</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-receipt text-indigo-600 mr-2"></i>Orders Register</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b bg-slate-50 text-slate-600 text-xs uppercase font-semibold">
+                                        <th class="p-3">Customer</th>
+                                        <th class="p-3">Phone</th>
+                                        <th class="p-3">Details</th>
+                                        <th class="p-3">Amount</th>
+                                        <th class="p-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="order-table-body" class="divide-y text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. CONTENT & ADS TAB -->
+                <div id="content" class="tab-content space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-rectangle-ad text-indigo-600 mr-2"></i>Social Content & FB Ads Tracking</h3>
+                        <form id="content-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <input type="text" id="content-title" placeholder="Campaign / Post Title" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <input type="number" id="ad-spend" placeholder="FB Ad Spend (৳)" class="border border-slate-300 p-2.5 rounded-lg">
+                            <input type="text" id="ad-results" placeholder="Leads / Messages Count" class="border border-slate-300 p-2.5 rounded-lg">
+                            <textarea id="content-caption" placeholder="Caption & Hashtags..." class="md:col-span-3 border border-slate-300 p-2.5 rounded-lg" rows="3"></textarea>
+                            <button type="submit" class="md:col-span-3 bg-indigo-600 text-white font-medium py-2.5 rounded-lg hover:bg-indigo-700">Save Ad Log</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Saved Campaigns</h3>
+                        <div id="content-list" class="space-y-4"></div>
+                    </div>
+                </div>
+
+                <!-- 5. INCOME & EXPENSE TAB -->
+                <div id="finance" class="tab-content space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-money-bill-transfer text-indigo-600 mr-2"></i>Record Transaction</h3>
+                        <form id="finance-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <select id="fin-type" class="border border-slate-300 p-2.5 rounded-lg">
+                                <option value="income">Income (আয়)</option>
+                                <option value="expense">Expense (ব্যয়)</option>
+                            </select>
+                            <input type="text" id="fin-reason" placeholder="Description / Purpose" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <input type="number" id="fin-amount" placeholder="Amount (৳)" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <button type="submit" class="bg-indigo-600 text-white font-medium py-2.5 rounded-lg hover:bg-indigo-700">Save Record</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Financial Log</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b bg-slate-50 text-slate-600 text-xs uppercase font-semibold">
+                                        <th class="p-3">Type</th>
+                                        <th class="p-3">Purpose</th>
+                                        <th class="p-3">Amount</th>
+                                        <th class="p-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="finance-table-body" class="divide-y text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. TEAM & TASKS TAB -->
+                <div id="tasks" class="tab-content space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-users-gear text-indigo-600 mr-2"></i>Assign Team Task</h3>
+                        <form id="task-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="text" id="task-title" placeholder="Task Title" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <input type="text" id="task-member" placeholder="Assignee Member Name" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <button type="submit" class="bg-indigo-600 text-white font-medium py-2.5 rounded-lg hover:bg-indigo-700">Assign Task</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Task Management</h3>
+                        <div id="task-list" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- 7. MEDIA TAB -->
+                <div id="media" class="tab-content space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-cloud-arrow-up text-indigo-600 mr-2"></i>Save File & Media Links</h3>
+                        <form id="media-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="text" id="media-name" placeholder="Title/Name" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <input type="text" id="media-link" placeholder="Drive / Image / File URL" required class="border border-slate-300 p-2.5 rounded-lg">
+                            <button type="submit" class="bg-indigo-600 text-white font-medium py-2.5 rounded-lg hover:bg-indigo-700">Save Asset Link</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Saved Assets</h3>
+                        <div id="media-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                    </div>
+                </div>
+
+                <!-- 8. BACKUP TAB -->
+                <div id="backup" class="tab-content space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                        <h3 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-shield-halved text-indigo-600 mr-2"></i>Data Security & Local Storage Backup</h3>
+                        <p class="text-sm text-slate-600">নিয়মিত ব্যাকআপ নিয়ে রাখুন যাতে আপনার লোকাল কম্পিউটার রিসেট হলেও ব্যবসার সমস্ত তথ্য محفوظ থাকে।</p>
+                        <div class="flex flex-wrap gap-4 pt-2">
+                            <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 shadow-sm transition">
+                                <i class="fa-solid fa-download"></i> Download Backup File (.json)
+                            </button>
+                            <label class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium cursor-pointer flex items-center gap-2 shadow-sm transition">
+                                <i class="fa-solid fa-upload"></i> Restore Backup File
+                                <input type="file" id="import-file" class="hidden" onchange="importData(event)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Authentication System
+        const AUTH_KEY = 'fizen_authenticated';
+
+        function checkAuth() {
+            if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-workspace').classList.remove('hidden');
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('app-workspace').classList.add('hidden');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('login-id').value;
+            const pass = document.getElementById('login-pass').value;
+
+            if (id === 'Fizen' && pass === 'Fizen123') {
+                sessionStorage.setItem(AUTH_KEY, 'true');
+                document.getElementById('login-error').classList.add('hidden');
+                checkAuth();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem(AUTH_KEY);
+            checkAuth();
+        }
+
+        // Navigation Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('bg-slate-800'));
+            
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+            if(activeBtn) activeBtn.classList.add('bg-slate-800');
+            
+            document.getElementById('page-title').innerText = activeBtn ? activeBtn.innerText.trim() : 'Dashboard';
+        }
+
+        // Local Storage DB
+        let db = JSON.parse(localStorage.getItem('fizen_db')) || {
+            products: [],
+            orders: [],
+            content: [],
+            finance: [],
+            tasks: [],
+            media: []
+        };
+
+        function saveData() {
+            localStorage.setItem('fizen_db', JSON.stringify(db));
+            renderAll();
+        }
+
+        // Form Submit Handlers
+        document.getElementById('product-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            db.products.push({
+                id: Date.now(),
+                name: document.getElementById('prod-name').value,
+                price: parseFloat(document.getElementById('prod-price').value),
+                stock: parseInt(document.getElementById('prod-stock').value)
+            });
+            e.target.reset();
+            saveData();
+        });
+
+        document.getElementById('order-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('order-amount').value);
+            db.orders.push({
+                id: Date.now(),
+                name: document.getElementById('cust-name').value,
+                phone: document.getElementById('cust-phone').value,
+                details: document.getElementById('order-details').value,
+                amount: amount
+            });
+            db.finance.push({
+                id: Date.now(),
+                type: 'income',
+                reason: 'Order: ' + document.getElementById('cust-name').value,
+                amount: amount
+            });
+            e.target.reset();
+            saveData();
+        });
+
+        document.getElementById('content-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            db.content.push({
+                id: Date.now(),
+                title: document.getElementById('content-title').value,
+                spend: document.getElementById('ad-spend').value,
+                results: document.getElementById('ad-results').value,
+                caption: document.getElementById('content-caption').value
+            });
+            e.target.reset();
+            saveData();
+        });
+
+        document.getElementById('finance-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            db.finance.push({
+                id: Date.now(),
+                type: document.getElementById('fin-type').value,
+                reason: document.getElementById('fin-reason').value,
+                amount: parseFloat(document.getElementById('fin-amount').value)
+            });
+            e.target.reset();
+            saveData();
+        });
+
+        document.getElementById('task-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            db.tasks.push({
+                id: Date.now(),
+                title: document.getElementById('task-title').value,
+                member: document.getElementById('task-member').value,
+                completed: false
+            });
+            e.target.reset();
+            saveData();
+        });
+
+        document.getElementById('media-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            db.media.push({
+                id: Date.now(),
+                name: document.getElementById('media-name').value,
+                link: document.getElementById('media-link').value
+            });
+            e.target.reset();
+            saveData();
+        });
+
+        function deleteItem(category, id) {
+            db[category] = db[category].filter(item => item.id !== id);
+            saveData();
+        }
+
+        function toggleTask(id) {
+            const task = db.tasks.find(t => t.id === id);
+            if(task) task.completed = !task.completed;
+            saveData();
+        }
+
+        // Dynamic Render
+        function renderAll() {
+            document.getElementById('stat-orders').innerText = db.orders.length;
+            let totalIncome = db.finance.filter(f => f.type === 'income').reduce((acc, cur) => acc + cur.amount, 0);
+            let totalExpense = db.finance.filter(f => f.type === 'expense').reduce((acc, cur) => acc + cur.amount, 0);
+            document.getElementById('stat-income').innerText = '৳' + totalIncome;
+            document.getElementById('stat-expense').innerText = '৳' + totalExpense;
+            document.getElementById('stat-profit').innerText = '৳' + (totalIncome - totalExpense);
+
+            document.getElementById('product-table-body').innerHTML = db.products.map(p => `
+                <tr><td class="p-3 font-medium">${p.name}</td><td class="p-3 text-emerald-600 font-bold">৳${p.price}</td><td class="p-3">${p.stock}</td><td class="p-3"><button onclick="deleteItem('products', ${p.id})" class="text-rose-600 hover:underline">Remove</button></td></tr>
+            `).join('');
+
+            document.getElementById('order-table-body').innerHTML = db.orders.map(o => `
+                <tr><td class="p-3 font-medium">${o.name}</td><td class="p-3 text-slate-500">${o.phone}</td><td class="p-3">${o.details}</td><td class="p-3 text-indigo-600 font-bold">৳${o.amount}</td><td class="p-3"><button onclick="deleteItem('orders', ${o.id})" class="text-rose-600 hover:underline">Remove</button></td></tr>
+            `).join('');
+
+            document.getElementById('content-list').innerHTML = db.content.map(c => `
+                <div class="border p-4 rounded-xl bg-slate-50 space-y-2">
+                    <div class="flex justify-between font-bold text-slate-800"><span>${c.title}</span><button onclick="deleteItem('content', ${c.id})" class="text-rose-600 text-xs">Remove</button></div>
+                    <p class="text-xs text-slate-500"><strong>Ad Spend:</strong> ৳${c.spend || 0} | <strong>Results:</strong> ${c.results || 'N/A'}</p>
+                    <p class="text-sm bg-white p-2.5 rounded-lg border border-slate-200 font-mono text-slate-700">${c.caption}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('finance-table-body').innerHTML = db.finance.map(f => `
+                <tr><td class="p-3 font-bold uppercase text-xs ${f.type==='income'?'text-emerald-600':'text-rose-600'}">${f.type}</td><td class="p-3">${f.reason}</td><td class="p-3 font-semibold">৳${f.amount}</td><td class="p-3"><button onclick="deleteItem('finance', ${f.id})" class="text-rose-600 hover:underline">Remove</button></td></tr>
+            `).join('');
+
+            document.getElementById('task-list').innerHTML = db.tasks.map(t => `
+                <div class="flex items-center justify-between border p-3 rounded-xl bg-slate-50">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})" class="w-4 h-4 text-indigo-600 rounded">
+                        <span class="${t.completed ? 'line-through text-slate-400' : 'text-slate-800'} font-medium"><strong>${t.title}</strong> <span class="text-xs text-slate-500">(${t.member})</span></span>
+                    </div>
+                    <button onclick="deleteItem('tasks', ${t.id})" class="text-rose-600 text-xs">Remove</button>
+                </div>
+            `).join('');
+
+            document.getElementById('media-list').innerHTML = db.media.map(m => `
+                <div class="border p-4 rounded-xl bg-slate-50 flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-slate-800">${m.name}</h4>
+                        <a href="${m.link}" target="_blank" class="text-indigo-600 text-xs underline truncate block mt-1">${m.link}</a>
+                    </div>
+                    <button onclick="deleteItem('media', ${m.id})" class="text-rose-600 text-xs mt-3 text-left">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Data Backup
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Fizen_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerQuickBackup() {
+            exportData();
+        }
+
+        function importData(event) {
+            const fileReader = new FileReader();
+            fileReader.readAsText(event.target.files[0], "UTF-8");
+            fileReader.onload = e => {
+                try {
+                    db = JSON.parse(e.target.result);
+                    saveData();
+                    alert('Backup restored successfully!');
+                } catch (error) {
+                    alert('Invalid file format!');
+                }
+            };
+        }
+
+        // Init
+        checkAuth();
+        renderAll();
+    </script>
+</body>
+</html>
